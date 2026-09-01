@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maxposter</title>
+<style>
+  :root {
+    --bg: #f5f5f5;
+    --bg-card: #ffffff;
+    --bg-thumb: #e5e5e5;
+    --text: #111827;
+    --text-muted: #6b7280;
+    --border: #d1d5db;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --purple: #a855f7;
+    --red: #e74c3c;
+    --red-hover: #c0392b;
+    --green: #22c55e;
+    --green-hover: #16a34a;
+    --overlay: rgba(0, 0, 0, 0.5);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --bg-card: #262626;
+      --bg-thumb: #333333;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border: #404040;
+      --overlay: rgba(0, 0, 0, 0.7);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  input, select, button { font-family: inherit; font-size: 14px; }
+  .muted { color: var(--text-muted); }
+  .small { font-size: 11px; }
+
+  /* ---------- Login ---------- */
+  .login-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .login-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 36px 40px;
+    width: 100%;
+    max-width: 360px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  }
+  .brand { font-size: 28px; font-weight: 700; text-align: center; margin: 0 0 4px; }
+  .login-card > p { text-align: center; margin: 0 0 20px; }
+  .login-card input {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .msg { min-height: 18px; font-size: 13px; text-align: center; margin: 6px 0; }
+  .msg-error { color: var(--red); }
+  .msg-success { color: var(--green); }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    background: var(--accent);
+    color: white;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+  .btn-block { width: 100%; margin-top: 6px; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--bg-thumb); }
+  .btn-link { background: transparent; color: var(--text-muted); }
+  .btn-link:hover { background: var(--bg-thumb); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { background: var(--red-hover); }
+  .btn-approve { background: var(--green); color: white; }
+  .btn-approve:hover { background: var(--green-hover); }
+
+  /* ---------- Gallery ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topbar-left { display: flex; align-items: baseline; gap: 12px; }
+  .topbar-right { display: flex; gap: 8px; flex-wrap: wrap; }
+  .brand-sm { font-size: 20px; font-weight: 700; }
+  .filterbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px 12px;
+    flex-wrap: wrap;
+  }
+  .input, .select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+    color: var(--text);
+  }
+  .input { width: 220px; }
+  .block { width: 100%; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    padding: 4px 20px 20px;
+  }
+  .grid-msg { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 50px 0; }
+  .grid-error { color: var(--red); }
+  .card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 8px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card-thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-thumb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .card-thumb.thumb-error::after { content: "Gagal memuat"; color: var(--text-muted); font-size: 12px; }
+  .badge {
+    position: absolute;
+    left: 6px;
+    bottom: 6px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+  }
+  .badge-landscape { background: var(--accent); }
+  .badge-portrait { background: var(--purple); }
+  .card-name { font-size: 12px; margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-folder { font-size: 10px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bottombar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 20px 24px;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 28px 28px 20px;
+    width: 100%;
+    max-width: 460px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-viewer { max-width: 640px; text-align: center; }
+  .modal h2 { margin: 0 0 4px; font-size: 19px; }
+  .modal > p.muted { margin: 0 0 4px; }
+  .modal label.muted { display: block; margin: 12px 0 4px; font-size: 12px; }
+  .file-input { width: 100%; margin-top: 10px; }
+  .file-list {
+    max-height: 100px;
+    overflow-y: auto;
+    background: var(--bg);
+    border-radius: 8px;
+    margin-top: 8px;
+    padding: 4px 10px;
+  }
+  .file-item { font-size: 12px; padding: 3px 0; }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .viewer-image-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    max-height: 55vh;
+    margin: 10px 0;
+    background: var(--bg-thumb);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .viewer-image-wrap img { max-width: 100%; max-height: 55vh; object-fit: contain; }
+  .admin-list { max-height: 340px; overflow-y: auto; }
+  .admin-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .admin-row-name { font-weight: 600; font-size: 13px; }
+  .admin-row-actions { display: flex; gap: 6px; }
+  .admin-row-actions .btn { padding: 6px 12px; font-size: 12px; }
+
+  @media (max-width: 560px) {
+    .input { width: 100%; }
+    .filterbar { flex-direction: column; align-items: stretch; }
+    .topbar { flex-direction: column; align-items: stretch; }
+    .topbar-right { justify-content: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal-root"></div>
+
+<script>
+"use strict";
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  token: localStorage.getItem("mp_token") || null,
+  username: localStorage.getItem("mp_username") || null,
+  isAdmin: localStorage.getItem("mp_is_admin") === "true",
+  mode: "login", // "login" atau "register"
+  category: "all",
+  folderId: "",
+  search: "",
+  page: 1,
+  pageSize: 20,
+  totalPages: 1,
+  currentItems: [],
+};
+
+const thumbnailCache = new Map(); // posterId -> blob URL (cache selama sesi halaman ini)
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str ?? "";
+  return div.innerHTML;
+}
+
+function formatSize(bytes) {
+  let size = bytes;
+  for (const unit of ["B", "KB", "MB", "GB"]) {
+    if (size < 1024) return `${size.toFixed(1)} ${unit}`;
+    size /= 1024;
+  }
+  return `${size.toFixed(1)} TB`;
+}
+
+async function apiCall(method, path, { json, form, auth = true } = {}) {
+  const headers = {};
+  if (auth && state.token) headers["Authorization"] = `Bearer ${state.token}`;
+  const opts = { method, headers };
+  if (json !== undefined) {
+    headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(json);
+  } else if (form !== undefined) {
+    opts.body = form;
+  }
+  const resp = await fetch(path, opts);
+  let data = {};
+  try {
+    data = await resp.json();
+  } catch (e) {
+    /* respons tanpa body JSON (mis. error jaringan) */
+  }
+  if (resp.status === 401 && auth) {
+    clearSession();
+    renderLogin();
+    throw new Error("Sesi berakhir, silakan login kembali.");
+  }
+  if (!resp.ok) {
+    throw new Error(data.detail || `Error ${resp.status}`);
+  }
+  return data;
+}
+
+async function fetchAuthedBlob(path) {
+  const resp = await fetch(path, { headers: { Authorization: `Bearer ${state.token}` } });
+  if (!resp.ok) throw new Error(`Error ${resp.status}`);
+  return await resp.blob();
+}
+
+function saveSession(token, username, isAdmin) {
+  state.token = token;
+  state.username = username;
+  state.isAdmin = isAdmin;
+  localStorage.setItem("mp_token", token);
+  localStorage.setItem("mp_username", username);
+  localStorage.setItem("mp_is_admin", String(isAdmin));
+}
+
+function clearSession() {
+  state.token = null;
+  state.username = null;
+  state.isAdmin = false;
+  localStorage.removeItem("mp_token");
+  localStorage.removeItem("mp_username");
+  localStorage.removeItem("mp_is_admin");
+  thumbnailCache.forEach((url) => URL.revokeObjectURL(url));
+  thumbnailCache.clear();
+}
+
+function closeModal() {
+  document.getElementById("modal-root").innerHTML = "";
+}
+
+// ============================================================
+// LOGIN / REGISTER
+// ============================================================
+function renderLogin() {
+  const isRegister = state.mode === "register";
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="login-wrap">
+      <div class="login-card">
+        <h1 class="brand">Maxposter</h1>
+        <p class="muted">${isRegister ? "Buat akun baru" : "Masuk ke akun Anda"}</p>
+        <form id="login-form">
+          ${isRegister ? `<input type="text" id="f-nama" placeholder="Nama lengkap (opsional)">` : ""}
+          <input type="text" id="f-username" placeholder="Username" autocomplete="username" required>
+          <input type="password" id="f-password" placeholder="Password" autocomplete="current-password" required>
+          ${isRegister ? `<input type="text" id="f-code" placeholder="Kode registrasi (jika diminta admin)">` : ""}
+          <div class="msg" id="login-msg"></div>
+          <button type="submit" class="btn btn-block" id="submit-btn">${isRegister ? "Daftar" : "Masuk"}</button>
+        </form>
+        <button class="btn btn-link btn-block" id="toggle-mode">
+          ${isRegister ? "Sudah punya akun? Masuk" : "Belum punya akun? Daftar"}
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("toggle-mode").onclick = () => {
+    state.mode = isRegister ? "login" : "register";
+    renderLogin();
+  };
+
+  document.getElementById("login-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("f-username").value.trim();
+    const password = document.getElementById("f-password").value;
+    const msgEl = document.getElementById("login-msg");
+    const btn = document.getElementById("submit-btn");
+
+    if (!username || !password) {
+      msgEl.textContent = "Mohon lengkapi semua data";
+      msgEl.className = "msg msg-error";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Memproses...";
+    msgEl.textContent = "";
+
+    try {
+      if (isRegister) {
+        const nama = document.getElementById("f-nama").value.trim();
+        const code = document.getElementById("f-code").value.trim();
+        const result = await apiCall("POST", "/auth/register", {
+          auth: false,
+          json: { username, password, nama_lengkap: nama || null, register_code: code || null },
+        });
+        if (result.access_token) {
+          saveSession(result.access_token, result.username, result.is_admin);
+          await renderGallery();
+        } else {
+          state.mode = "login";
+          renderLogin();
+          const m = document.getElementById("login-msg");
+          m.textContent = result.message || "Registrasi berhasil. Menunggu persetujuan admin.";
+          m.className = "msg msg-success";
+        }
+      } else {
+        const result = await apiCall("POST", "/auth/login", { auth: false, json: { username, password } });
+        saveSession(result.access_token, result.username, result.is_admin);
+        await renderGallery();
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = isRegister ? "Daftar" : "Masuk";
+      msgEl.textContent = err.message;
+      msgEl.className = "msg msg-error";
+    }
+  };
+}
+
+// ============================================================
+// GALERI
+// ============================================================
+async function renderGallery() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="brand-sm">Maxposter</span>
+        <span class="muted">Halo, ${escapeHtml(state.username)}</span>
+      </div>
+      <div class="topbar-right">
+        ${state.isAdmin ? `<button class="btn btn-outline" id="btn-admin">Kelola Pengguna</button>` : ""}
+        <button class="btn" id="btn-upload">+ Unggah Poster</button>
+        <button class="btn btn-outline" id="btn-logout">Keluar</button>
+      </div>
+    </div>
+    <div class="filterbar">
+      <input type="text" class="input" id="f-search" placeholder="Cari nama poster atau tag...">
+      <select class="select" id="f-category">
+        <option value="all">Semua</option>
+        <option value="landscape">Landscape</option>
+        <option value="portrait">Potrait</option>
+      </select>
+      <select class="select" id="f-folder"><option value="">Semua Folder</option></select>
+      <span class="muted">Tampilkan:</span>
+      <select class="select" id="f-pagesize" style="width:72px">
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+      <span class="muted" id="stats-label" style="margin-left:auto"></span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="bottombar">
+      <button class="btn" id="btn-prev">&lt; Sebelumnya</button>
+      <span class="muted" id="page-label">Halaman 1 / 1</span>
+      <button class="btn" id="btn-next">Berikutnya &gt;</button>
+    </div>
+  `;
+
+  document.getElementById("f-pagesize").value = String(state.pageSize);
+  document.getElementById("btn-logout").onclick = () => {
+    clearSession();
+    renderLogin();
+  };
+  document.getElementById("btn-upload").onclick = openUploadModal;
+  if (state.isAdmin) document.getElementById("btn-admin").onclick = openAdminModal;
+
+  let searchTimer = null;
+  document.getElementById("f-search").oninput = (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      state.search = e.target.value.trim();
+      state.page = 1;
+      loadPosters();
+    }, 400);
+  };
+  document.getElementById("f-category").onchange = (e) => {
+    state.category = e.target.value;
+    state.page = 1;
+    loadPosters();
+  };
+  document.getElementById("f-folder").onchange = (e) => {
+    state.folderId = e.target.value;
+    state.page = 1;
+    loadPosters();
+  };
+  document.getElementById("f-pagesize").onchange = (e) => {
+    state.pageSize = parseInt(e.target.value, 10);
+    state.page = 1;
+    loadPosters();
+  };
+  document.getElementById("btn-prev").onclick = () => {
+    if (state.page > 1) {
+      state.page--;
+      loadPosters();
+    }
+  };
+  document.getElementById("btn-next").onclick = () => {
+    if (state.page < state.totalPages) {
+      state.page++;
+      loadPosters();
+    }
+  };
+
+  await loadFolders();
+  await loadPosters();
+}
+
+async function loadFolders() {
+  const sel = document.getElementById("f-folder");
+  if (!sel) return;
+  try {
+    const folders = await apiCall("GET", "/folders");
+    const current = sel.value;
+    sel.innerHTML =
+      `<option value="">Semua Folder</option>` +
+      folders.map((f) => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join("");
+    if ([...sel.options].some((o) => o.value === current)) sel.value = current;
+  } catch (e) {
+    /* filter folder tetap "Semua Folder" saja kalau daftar gagal dimuat */
+  }
+}
+
+async function loadPosters() {
+  const grid = document.getElementById("grid");
+  const prevBtn = document.getElementById("btn-prev");
+  const nextBtn = document.getElementById("btn-next");
+  if (!grid) return;
+
+  grid.innerHTML = `<div class="grid-msg">Memuat poster...</div>`;
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+
+  try {
+    const params = new URLSearchParams({
+      category: state.category,
+      search: state.search,
+      page: String(state.page),
+      page_size: String(state.pageSize),
+    });
+    if (state.folderId) params.set("folder_id", state.folderId);
+
+    const data = await apiCall("GET", `/posters?${params.toString()}`);
+    state.totalPages = data.total_pages;
+    state.page = data.page;
+    state.currentItems = data.items;
+
+    if (data.items.length === 0) {
+      grid.innerHTML = `<div class="grid-msg">Tidak ada poster ditemukan</div>`;
+    } else {
+      grid.innerHTML = data.items.map(posterCardHtml).join("");
+      grid.querySelectorAll(".card").forEach((card) => {
+        const id = parseInt(card.dataset.posterId, 10);
+        card.onclick = () => openViewerModal(id);
+      });
+      data.items.forEach((p) => loadThumbnail(p.id));
+    }
+
+    document.getElementById("stats-label").textContent = `${data.total} poster ditemukan`;
+    document.getElementById("page-label").textContent = `Halaman ${data.page} / ${data.total_pages}`;
+    prevBtn.disabled = data.page <= 1;
+    nextBtn.disabled = data.page >= data.total_pages;
+  } catch (e) {
+    grid.innerHTML = `<div class="grid-msg grid-error">Gagal memuat: ${escapeHtml(e.message)}</div>`;
+    prevBtn.disabled = state.page <= 1;
+    nextBtn.disabled = false;
+  }
+}
+
+function posterCardHtml(p) {
+  const isLandscape = p.category === "landscape";
+  const badgeClass = isLandscape ? "badge-landscape" : "badge-portrait";
+  const badgeText = isLandscape ? "Landscape" : "Potrait";
+  let name = p.original_filename;
+  if (name.length > 24) name = name.slice(0, 21) + "...";
+  return `
+    <div class="card" id="card-${p.id}" data-poster-id="${p.id}">
+      <div class="card-thumb" id="thumb-${p.id}">
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="card-name">${escapeHtml(name)}</div>
+      ${p.folder_name ? `<div class="card-folder">${escapeHtml(p.folder_name)}</div>` : ""}
+    </div>
+  `;
+}
+
+async function loadThumbnail(posterId) {
+  const attach = (url) => {
+    const el = document.getElementById(`thumb-${posterId}`);
+    if (!el || el.querySelector("img")) return;
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "";
+    img.loading = "lazy";
+    el.prepend(img);
+  };
+
+  if (thumbnailCache.has(posterId)) {
+    attach(thumbnailCache.get(posterId));
+    return;
+  }
+  try {
+    const blob = await fetchAuthedBlob(`/posters/${posterId}/thumbnail`);
+    const url = URL.createObjectURL(blob);
+    thumbnailCache.set(posterId, url);
+    attach(url);
+  } catch (e) {
+    const el = document.getElementById(`thumb-${posterId}`);
+    if (el) el.classList.add("thumb-error");
+  }
+}
+
+// ============================================================
+// MODAL: UNGGAH POSTER
+// ============================================================
+function openUploadModal() {
+  const root = document.getElementById("modal-root");
+  let selectedFiles = [];
+
+  root.innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <h2>Unggah Poster Baru</h2>
+        <p class="muted">Format didukung: JPG, JPEG, PNG</p>
+        <p class="muted small">Landscape/potrait terdeteksi otomatis sesuai ukuran gambar</p>
+        <input type="file" id="upload-files" class="file-input" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple>
+        <div class="file-list" id="upload-file-list"></div>
+        <label class="muted">Folder tujuan (opsional)</label>
+        <select class="select block" id="upload-folder">
+          <option value="">Tanpa Folder</option>
+          <option value="__create_new__">+ Buat Folder Baru...</option>
+        </select>
+        <label class="muted">Tag (opsional, pisahkan dengan koma)</label>
+        <input type="text" class="input block" id="upload-tags" placeholder="contoh: promo, ramadhan, event">
+        <div class="msg" id="upload-msg"></div>
+        <div class="modal-actions">
+          <button class="btn" id="upload-submit">Unggah</button>
+          <button class="btn btn-outline" id="upload-cancel">Batal</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("modal-overlay").onclick = (e) => {
+    if (e.target.id === "modal-overlay") closeModal();
+  };
+  document.getElementById("upload-cancel").onclick = closeModal;
+
+  refreshUploadFolderOptions();
+
+  document.getElementById("upload-folder").onchange = async (e) => {
+    if (e.target.value !== "__create_new__") return;
+    const name = (prompt("Nama folder baru:") || "").trim();
+    if (!name) {
+      e.target.value = "";
+      return;
+    }
+    try {
+      const folder = await apiCall("POST", "/folders", { json: { name } });
+      await refreshUploadFolderOptions(folder.id);
+    } catch (err) {
+      alert("Gagal membuat folder: " + err.message);
+      e.target.value = "";
+    }
+  };
+
+  document.getElementById("upload-files").onchange = (e) => {
+    selectedFiles = Array.from(e.target.files);
+    document.getElementById("upload-file-list").innerHTML = selectedFiles
+      .map((f) => `<div class="file-item">${escapeHtml(f.name)}</div>`)
+      .join("");
+  };
+
+  document.getElementById("upload-submit").onclick = async () => {
+    const msgEl = document.getElementById("upload-msg");
+    if (selectedFiles.length === 0) {
+      msgEl.textContent = "Pilih minimal satu file terlebih dahulu";
+      msgEl.className = "msg msg-error";
+      return;
+    }
+    const btn = document.getElementById("upload-submit");
+    btn.disabled = true;
+    btn.textContent = "Mengunggah...";
+    const tags = document.getElementById("upload-tags").value.trim();
+    const folderId = document.getElementById("upload-folder").value;
+
+    let success = 0;
+    let failed = 0;
+    for (const file of selectedFiles) {
+      try {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("tags", tags);
+        if (folderId) form.append("folder_id", folderId);
+        await apiCall("POST", "/posters/upload", { form });
+        success++;
+      } catch (err) {
+        failed++;
+      }
+      msgEl.textContent = `Mengunggah... ${success + failed}/${selectedFiles.length} selesai`;
+      msgEl.className = "msg";
+    }
+
+    btn.disabled = false;
+    btn.textContent = "Unggah";
+    if (failed === 0) {
+      msgEl.textContent = `Berhasil mengunggah ${success} poster`;
+      msgEl.className = "msg msg-success";
+    } else {
+      msgEl.textContent = `${success} berhasil, ${failed} gagal diunggah`;
+      msgEl.className = "msg msg-error";
+    }
+    await loadPosters();
+    await loadFolders();
+    setTimeout(() => {
+      if (document.getElementById("upload-msg")) closeModal();
+    }, 1200);
+  };
+}
+
+async function refreshUploadFolderOptions(selectId) {
+  const sel = document.getElementById("upload-folder");
+  if (!sel) return;
+  try {
+    const folders = await apiCall("GET", "/folders");
+    sel.innerHTML =
+      `<option value="">Tanpa Folder</option>` +
+      folders.map((f) => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join("") +
+      `<option value="__create_new__">+ Buat Folder Baru...</option>`;
+    if (selectId) sel.value = String(selectId);
+  } catch (e) {
+    /* biarkan hanya opsi default kalau gagal memuat */
+  }
+}
+
+// ============================================================
+// MODAL: LIHAT POSTER
+// ============================================================
+function openViewerModal(posterId) {
+  const poster = state.currentItems.find((p) => p.id === posterId);
+  if (!poster) return;
+
+  let fullBlob = null;
+  const root = document.getElementById("modal-root");
+  const isLandscape = poster.category === "landscape";
+  const info = `${poster.width} x ${poster.height} px  •  ${formatSize(poster.filesize)}  •  ${
+    isLandscape ? "Landscape" : "Potrait"
+  }`;
+
+  root.innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal modal-viewer">
+        <h2>${escapeHtml(poster.original_filename)}</h2>
+        <p class="muted">${info}</p>
+        <div class="viewer-image-wrap" id="viewer-image-wrap"><span class="muted">Memuat gambar...</span></div>
+        <div class="msg" id="viewer-msg"></div>
+        <div class="modal-actions">
+          <button class="btn" id="viewer-download">Unduh ke Komputer</button>
+          <button class="btn btn-danger" id="viewer-delete">Hapus Poster</button>
+          <button class="btn btn-outline" id="viewer-close">Tutup</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("modal-overlay").onclick = (e) => {
+    if (e.target.id === "modal-overlay") closeModal();
+  };
+  document.getElementById("viewer-close").onclick = closeModal;
+
+  document.getElementById("viewer-download").onclick = () => {
+    if (!fullBlob) {
+      alert("Gambar masih dimuat, coba lagi sebentar.");
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(fullBlob);
+    a.download = poster.original_filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  document.getElementById("viewer-delete").onclick = async () => {
+    if (!confirm(`Yakin ingin menghapus "${poster.original_filename}"?`)) return;
+    try {
+      await apiCall("DELETE", `/posters/${poster.id}`);
+      const cached = thumbnailCache.get(poster.id);
+      if (cached) {
+        URL.revokeObjectURL(cached);
+        thumbnailCache.delete(poster.id);
+      }
+      closeModal();
+      await loadPosters();
+    } catch (err) {
+      const m = document.getElementById("viewer-msg");
+      if (m) {
+        m.textContent = err.message;
+        m.className = "msg msg-error";
+      }
+    }
+  };
+
+  (async () => {
+    try {
+      fullBlob = await fetchAuthedBlob(`/posters/${poster.id}/file`);
+      const url = URL.createObjectURL(fullBlob);
+      const wrap = document.getElementById("viewer-image-wrap");
+      if (wrap) wrap.innerHTML = `<img src="${url}" alt="">`;
+    } catch (e) {
+      const wrap = document.getElementById("viewer-image-wrap");
+      if (wrap) wrap.innerHTML = `<span class="muted">Gagal memuat gambar</span>`;
+    }
+  })();
+}
+
+// ============================================================
+// MODAL: KELOLA PENGGUNA (ADMIN)
+// ============================================================
+function openAdminModal() {
+  const root = document.getElementById("modal-root");
+  root.innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <h2>Persetujuan Pengguna Baru</h2>
+        <p class="muted">Akun yang mendaftar menunggu persetujuan Anda di sini</p>
+        <div class="admin-list" id="admin-list"><div class="grid-msg">Memuat...</div></div>
+        <div class="msg" id="admin-msg"></div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" id="admin-close">Tutup</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById("modal-overlay").onclick = (e) => {
+    if (e.target.id === "modal-overlay") closeModal();
+  };
+  document.getElementById("admin-close").onclick = closeModal;
+  refreshPendingList();
+}
+
+async function refreshPendingList() {
+  const listEl = document.getElementById("admin-list");
+  if (!listEl) return;
+  try {
+    const users = await apiCall("GET", "/auth/pending");
+    if (users.length === 0) {
+      listEl.innerHTML = `<div class="grid-msg">Tidak ada pendaftar yang menunggu saat ini.</div>`;
+      return;
+    }
+    listEl.innerHTML = users
+      .map(
+        (u) => `
+      <div class="admin-row">
+        <div>
+          <div class="admin-row-name">${escapeHtml(u.username)}</div>
+          ${u.nama_lengkap ? `<div class="muted small">${escapeHtml(u.nama_lengkap)}</div>` : ""}
+        </div>
+        <div class="admin-row-actions">
+          <button class="btn btn-approve" data-approve="${u.id}">Setujui</button>
+          <button class="btn btn-danger" data-reject="${u.id}" data-username="${escapeHtml(u.username)}">Tolak</button>
+        </div>
+      </div>`
+      )
+      .join("");
+
+    listEl.querySelectorAll("[data-approve]").forEach((btn) => {
+      btn.onclick = async () => {
+        try {
+          await apiCall("POST", `/auth/approve/${btn.dataset.approve}`);
+          showAdminMsg("Pengguna disetujui.", false);
+          await refreshPendingList();
+        } catch (e) {
+          showAdminMsg(e.message, true);
+        }
+      };
+    });
+    listEl.querySelectorAll("[data-reject]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm(`Yakin ingin menolak "${btn.dataset.username}"? Akun ini akan dihapus.`)) return;
+        try {
+          await apiCall("DELETE", `/auth/users/${btn.dataset.reject}`);
+          showAdminMsg("Pendaftar ditolak dan dihapus.", false);
+          await refreshPendingList();
+        } catch (e) {
+          showAdminMsg(e.message, true);
+        }
+      };
+    });
+  } catch (e) {
+    listEl.innerHTML = `<div class="grid-msg grid-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function showAdminMsg(msg, isError) {
+  const el = document.getElementById("admin-msg");
+  if (el) {
+    el.textContent = msg;
+    el.className = "msg " + (isError ? "msg-error" : "msg-success");
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  if (state.token) {
+    try {
+      const me = await apiCall("GET", "/auth/me");
+      state.username = me.username;
+      state.isAdmin = me.is_admin;
+      localStorage.setItem("mp_username", me.username);
+      localStorage.setItem("mp_is_admin", String(me.is_admin));
+      await renderGallery();
+      return;
+    } catch (e) {
+      clearSession();
+    }
+  }
+  renderLogin();
+}
+
+init();
+</script>
+</body>
+</html>
